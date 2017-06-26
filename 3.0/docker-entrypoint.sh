@@ -1,6 +1,7 @@
 #!/bin/bash
 set -e
 
+REPLICA_SET_NAME=${REPLICA_SET_NAME:=rs0}
 USERNAME=${USERNAME:=dev}
 PASSWORD=${PASSWORD:=dev}
 
@@ -49,11 +50,11 @@ chmod 600 /var/mongo_keyfile
 
 echo "STARTING CLUSTER"
 
-mongod --port 27003 --smallfiles --dbpath /data/db3 --auth --replSet rs0 --keyFile /var/mongo_keyfile  &
+mongod --port 27003 --smallfiles --dbpath /data/db3 --auth --replSet $REPLICA_SET_NAME --keyFile /var/mongo_keyfile  &
 DB3_PID=$!
-mongod --port 27002 --smallfiles --dbpath /data/db2 --auth --replSet rs0 --keyFile /var/mongo_keyfile  &
+mongod --port 27002 --smallfiles --dbpath /data/db2 --auth --replSet $REPLICA_SET_NAME --keyFile /var/mongo_keyfile  &
 DB2_PID=$!
-mongod --port 27001 --smallfiles --dbpath /data/db1 --auth --replSet rs0 --keyFile /var/mongo_keyfile  &
+mongod --port 27001 --smallfiles --dbpath /data/db1 --auth --replSet $REPLICA_SET_NAME --keyFile /var/mongo_keyfile  &
 DB1_PID=$!
 
 waitForMongo 27001 $USERNAME $PASSWORD
@@ -61,7 +62,7 @@ waitForMongo 27002
 waitForMongo 27003
 
 echo "CONFIGURING REPLICA SET: $HOSTNAME"
-CONFIG="{ _id: 'rs0', members: [{_id: 0, host: '$HOSTNAME:27001', priority: 2 }, { _id: 1, host: '$HOSTNAME:27002' }, { _id: 2, host: '$HOSTNAME:27003' } ]}"
+CONFIG="{ _id: '$REPLICA_SET_NAME', members: [{_id: 0, host: '$HOSTNAME:27001', priority: 2 }, { _id: 1, host: '$HOSTNAME:27002' }, { _id: 2, host: '$HOSTNAME:27003' } ]}"
 mongo admin --port 27001 -u $USERNAME -p $PASSWORD --eval "db.runCommand({ replSetInitiate: $CONFIG })"
 
 waitForMongo 27002 $USERNAME $PASSWORD
