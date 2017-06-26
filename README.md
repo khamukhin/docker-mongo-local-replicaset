@@ -30,7 +30,7 @@ The container will create one volume at `/data`, but you can mount one or more t
   - db3: `/data/db3`
 
 #### REPLICA SET NAME
-It's called: `rs0`
+You can customize the replica set name by providing `REPLICA_SET_NAME` environment variable. default name is: `rs0`
 
 ## Notes
 
@@ -38,7 +38,7 @@ If you mount something into `/data/db1`, the container will not go through it's 
 
 ### Example Run
 
-    docker run -d --name mongo -v $(pwd)/data:/data boucher/mongo-local-replicaset
+    docker run -d --name mongo -v /data/mongodb:/data -e "REPLICA_SET_NAME=mongo-rs" -e "USERNAME=dev" -e "PASSWORD=dev" --restart=always luamas/mongo-local-replicaset
 
 ### Example Mongo Connection String (from another container)
 
